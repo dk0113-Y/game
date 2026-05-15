@@ -1,0 +1,209 @@
+#root {
+  width: 100%;
+  max-width: none;
+  border-inline: 0;
+  text-align: left;
+}
+
+button {
+  font: inherit;
+}
+
+.game-shell {
+  min-height: 100svh;
+  background: #f7f3e8;
+  color: #25251e;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 28px;
+  border-bottom: 1px solid #d8d1bd;
+  background: #fffbf0;
+}
+
+.game-header h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.resource-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.resource-pill {
+  border: 1px solid #cec5ad;
+  border-radius: 6px;
+  background: #fff8e8;
+  padding: 5px 9px;
+  font-size: 14px;
+  color: #3b392f;
+}
+
+.turn-button,
+.found-button {
+  border: 1px solid #2f5f4e;
+  border-radius: 6px;
+  background: #2f6f58;
+  color: #fff;
+  cursor: pointer;
+  padding: 9px 14px;
+}
+
+.turn-button:hover,
+.found-button:hover {
+  background: #255b48;
+}
+
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 720px) minmax(260px, 340px);
+  gap: 24px;
+  align-items: start;
+  padding: 28px;
+}
+
+.map-wrap {
+  overflow: auto;
+}
+
+.grid-map {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(42px, 1fr));
+  gap: 4px;
+  min-width: 520px;
+  max-width: 720px;
+}
+
+.map-tile {
+  aspect-ratio: 1;
+  border: 2px solid rgba(50, 48, 39, 0.2);
+  border-radius: 4px;
+  color: #1d1d18;
+  cursor: pointer;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+  padding: 5px;
+  text-align: left;
+}
+
+.map-tile:hover {
+  border-color: rgba(37, 91, 72, 0.65);
+}
+
+.map-tile.selected {
+  border-color: #111;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.75);
+}
+
+.tile-terrain {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.tile-occupants {
+  align-self: center;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tile-coords {
+  color: rgba(29, 29, 24, 0.6);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.terrain-grassland {
+  background: #b9d882;
+}
+
+.terrain-forest {
+  background: #6fa46c;
+}
+
+.terrain-hill {
+  background: #c3aa78;
+}
+
+.terrain-river {
+  background: #82bdd7;
+}
+
+.terrain-coast {
+  background: #decf99;
+}
+
+.side-panel {
+  border: 1px solid #d8d1bd;
+  border-radius: 8px;
+  background: #fffbf0;
+  padding: 18px;
+}
+
+.side-panel h2 {
+  margin: 0 0 14px;
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.detail-list {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #ebe3d0;
+  padding-bottom: 7px;
+}
+
+.detail-row span:first-child {
+  color: #6f6b5d;
+}
+
+.empty-selection {
+  color: #6f6b5d;
+}
+
+.error-message {
+  border: 1px solid #c85f52;
+  border-radius: 6px;
+  background: #fff0ec;
+  color: #8b2b23;
+  margin-bottom: 14px;
+  padding: 10px;
+}
+
+@media (max-width: 900px) {
+  .game-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .game-layout {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .grid-map {
+    min-width: 460px;
+  }
+}
