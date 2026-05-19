@@ -1,11 +1,13 @@
-import { terrainRules } from "../data/terrainRules";
 import type { Settlement, Settler, Tile } from "../core/types";
+import { TERRAIN_LABELS } from "../data/labels";
+import { terrainRules } from "../data/terrainRules";
 
 interface SidePanelProps {
   errorMessage: string | undefined;
   selectedTile: Tile | undefined;
   selectedSettler: Settler | undefined;
   selectedSettlement: Settlement | undefined;
+  travelRemainingDays: number | undefined;
   onFoundSettlement: () => void;
 }
 
@@ -14,6 +16,7 @@ export function SidePanel({
   selectedTile,
   selectedSettler,
   selectedSettlement,
+  travelRemainingDays,
   onFoundSettlement,
 }: SidePanelProps) {
   const terrainRule = selectedTile
@@ -22,7 +25,7 @@ export function SidePanel({
 
   return (
     <aside className="side-panel">
-      <h2>Hex Info</h2>
+      <h2>地块信息</h2>
 
       {errorMessage ? <div className="error-message">{errorMessage}</div> : null}
 
@@ -30,65 +33,73 @@ export function SidePanel({
         <>
           <dl className="detail-list">
             <div className="detail-row">
-              <span>Axial Coord</span>
+              <span>轴向坐标</span>
               <strong>
                 {selectedTile.q}, {selectedTile.r}
               </strong>
             </div>
             <div className="detail-row">
-              <span>Owner</span>
-              <strong>{selectedTile.ownerId ?? "None"}</strong>
+              <span>归属</span>
+              <strong>{selectedTile.ownerId ?? "无"}</strong>
             </div>
             <div className="detail-row">
-              <span>Terrain</span>
-              <strong>{terrainRule?.label}</strong>
+              <span>地形</span>
+              <strong>{TERRAIN_LABELS[selectedTile.terrain]}</strong>
             </div>
             <div className="detail-row">
-              <span>Move Cost</span>
+              <span>移动成本</span>
               <strong>{terrainRule?.moveCost}</strong>
             </div>
             <div className="detail-row">
-              <span>Potential</span>
+              <span>潜力</span>
               <strong>
-                F{terrainRule?.potential.food} W{terrainRule?.potential.wood} S
-                {terrainRule?.potential.stone} K
+                食{terrainRule?.potential.food} 木{terrainRule?.potential.wood}
+                石{terrainRule?.potential.stone} 知
                 {terrainRule?.potential.knowledge}
               </strong>
             </div>
             <div className="detail-row">
-              <span>Can Found</span>
-              <strong>{terrainRule?.canFoundSettlement ? "Yes" : "No"}</strong>
+              <span>可扎营</span>
+              <strong>{terrainRule?.canFoundSettlement ? "是" : "否"}</strong>
             </div>
             <div className="detail-row">
-              <span>Settler</span>
+              <span>开拓者</span>
               <strong>
                 {selectedSettler
-                  ? `S (${selectedSettler.movesLeft} moves)`
-                  : "None"}
+                  ? `拓（${selectedSettler.movesLeft} 移动点）`
+                  : "无"}
               </strong>
             </div>
             <div className="detail-row">
-              <span>Settlement</span>
+              <span>旅行</span>
+              <strong>
+                {selectedSettler?.currentTask
+                  ? `旅行中（剩余约 ${travelRemainingDays ?? 0} 天）`
+                  : "空闲"}
+              </strong>
+            </div>
+            <div className="detail-row">
+              <span>营地</span>
               <strong>
                 {selectedSettlement
-                  ? `${selectedSettlement.name} (${selectedSettlement.population})`
-                  : "None"}
+                  ? `${selectedSettlement.name}（人口 ${selectedSettlement.population}）`
+                  : "无"}
               </strong>
             </div>
           </dl>
 
-          {selectedSettler ? (
+          {selectedSettler && !selectedSettler.currentTask ? (
             <button
               className="found-button"
               type="button"
               onClick={onFoundSettlement}
             >
-              Found Settlement
+              建立营地
             </button>
           ) : null}
         </>
       ) : (
-        <p className="empty-selection">Select a hex on the map.</p>
+        <p className="empty-selection">请选择地图上的六边形地块。</p>
       )}
     </aside>
   );

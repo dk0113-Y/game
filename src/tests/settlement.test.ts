@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { endTurn, foundSettlement } from "../game/core/actions";
+import { foundSettlement } from "../game/core/actions";
 import { createInitialWorld } from "../game/core/createWorld";
 import { getHexNeighbors } from "../game/core/hex";
 import { getTileAt } from "../game/core/selectors";
+import { advanceOneDay } from "../game/core/time";
 import type { GameState, Terrain } from "../game/core/types";
 
 function createWorldWithCenterTerrain(terrain: Terrain): GameState {
@@ -38,13 +39,13 @@ describe("settlements", () => {
     ).toBe(true);
   });
 
-  it("does not produce resources directly from terrain on endTurn", () => {
+  it("does not produce resources directly from terrain on daily advance", () => {
     const state = foundSettlement(
       createWorldWithCenterTerrain("hill"),
       "settler-1",
       "Hill Home",
     );
-    const nextState = endTurn(state);
+    const nextState = advanceOneDay(state);
 
     expect(nextState.player.food).toBe(1);
     expect(nextState.player.wood).toBe(0);
@@ -52,13 +53,13 @@ describe("settlements", () => {
     expect(nextState.player.knowledge).toBe(1);
   });
 
-  it("provides food and knowledge from settlement activity each turn", () => {
+  it("provides food and knowledge from settlement activity each day", () => {
     const state = foundSettlement(
       createInitialWorld(5, 5),
       "settler-1",
       "First Home",
     );
-    const nextState = endTurn(state);
+    const nextState = advanceOneDay(state);
 
     expect(nextState.turn).toBe(2);
     expect(nextState.player.food).toBe(1);

@@ -1,7 +1,9 @@
 import { terrainRules } from "../data/terrainRules";
 import { isHexAdjacent } from "./hex";
+import { findPath } from "./pathfinding";
 import { getSettler, getTileAt } from "./selectors";
-import type { GameState, Settlement } from "./types";
+import { advanceOneDay } from "./time";
+import type { GameState, Settlement, TravelTask } from "./types";
 
 function assertTileExists(state: GameState, q: number, r: number): void {
   if (!getTileAt(state, q, r)) {
@@ -115,20 +117,60 @@ export function foundSettlement(
   };
 }
 
-export function endTurn(state: GameState): GameState {
-  const settlementCount = state.player.settlements.length;
+export function startTravel(
+  state: GameState,
+  settlerId: string,
+  goalQ: number,
+  goalR: number,
+): GameState {
+  assertTileExists(state, goalQ, goalR);
+
+  const settler = getSettler(state, settlerId);
+  if (!settler) {
+    throw new Error("Settler not found.");
+  }
+
+  if (settler.q === goalQ && settler.r === goalR) {
+    return {
+      ...state,
+      player: {
+        ...state.player,
+        settlers: state.player.settlers.map((currentSettler) =>
+          currentSettler.id === settlerId
+            ? { ...currentSettler, currentTask: undefined }
+            : currentSettler,
+        ),
+      },
+    };
+  }
+
+  const path = findPath(
+    state,
+    { q: settler.q, r: settler.r },
+    { q: goalQ, r: goalR },
+    "walking",
+  );
+  const travelTask: TravelTask = {
+    type: "travel",
+    path,
+    currentSegmentIndex: 0,
+    progressOnSegmentDays: 0,
+    profileId: "walking",
+  };
 
   return {
     ...state,
-    turn: state.turn + 1,
     player: {
       ...state.player,
-      food: state.player.food + settlementCount,
-      knowledge: state.player.knowledge + settlementCount,
-      settlers: state.player.settlers.map((settler) => ({
-        ...settler,
-        movesLeft: 2,
-      })),
+      settlers: state.player.settlers.map((currentSettler) =>
+        currentSettler.id === settlerId
+          ? { ...currentSettler, currentTask: travelTask }
+          : currentSettler,
+      ),
     },
   };
+}
+
+export function endTurn(state: GameState): GameState {
+  return advanceOneDay(state);
 }

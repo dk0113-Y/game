@@ -9,6 +9,32 @@ button {
   font: inherit;
 }
 
+.mode-switcher {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #cfc6ad;
+  background: #2d3029;
+  padding: 8px 28px;
+}
+
+.mode-button {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff8e8;
+  cursor: pointer;
+  padding: 7px 12px;
+}
+
+.mode-button.active,
+.mode-button:hover {
+  background: #fff8e8;
+  color: #25251e;
+}
+
 .game-shell {
   min-height: 100svh;
   background: #f7f3e8;
@@ -49,7 +75,8 @@ button {
 }
 
 .turn-button,
-.found-button {
+.found-button,
+.speed-button {
   border: 1px solid #2f5f4e;
   border-radius: 6px;
   background: #2f6f58;
@@ -59,8 +86,32 @@ button {
 }
 
 .turn-button:hover,
-.found-button:hover {
+.found-button:hover,
+.speed-button:hover {
   background: #255b48;
+}
+
+.time-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.speed-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.speed-button {
+  min-width: 36px;
+  padding: 9px 11px;
+}
+
+.speed-button.active {
+  background: #183d32;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.42);
 }
 
 .game-layout {
@@ -106,6 +157,16 @@ button {
     drop-shadow(0 0 0.22rem rgba(255, 255, 255, 0.9));
 }
 
+.map-tile.travel-path {
+  box-shadow: inset 0 0 0 4px rgba(29, 75, 99, 0.45);
+}
+
+.map-tile.travel-destination {
+  box-shadow:
+    inset 0 0 0 4px rgba(29, 75, 99, 0.65),
+    inset 0 0 0 8px rgba(255, 255, 255, 0.35);
+}
+
 .tile-terrain {
   font-size: 10px;
   font-weight: 700;
@@ -149,6 +210,123 @@ button {
 
 .terrain-coast {
   background: #decf99;
+}
+
+.editor-toolbar {
+  display: grid;
+  gap: 12px;
+  border-bottom: 1px solid #d8d1bd;
+  background: #f0eadb;
+  padding: 14px 28px;
+}
+
+.editor-tool-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.editor-tool-label {
+  min-width: 72px;
+  color: #5d594d;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.editor-button,
+.editor-primary-button {
+  border: 1px solid #6b644f;
+  border-radius: 6px;
+  background: #fff8e8;
+  color: #25251e;
+  cursor: pointer;
+  padding: 7px 10px;
+}
+
+.editor-button.active,
+.editor-button:hover,
+.editor-primary-button:hover:not(:disabled) {
+  border-color: #2f5f4e;
+  background: #2f6f58;
+  color: #fff;
+}
+
+.editor-primary-button {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.editor-primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.editor-primary-button.secondary {
+  background: #f7f3e8;
+  color: #25251e;
+}
+
+.editor-selection-tools {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.editor-map-tile {
+  font-size: 11px;
+}
+
+.editor-map-tile.editor-starting-position {
+  outline: 3px solid #1f2937;
+  outline-offset: -7px;
+}
+
+.editor-map-tile.selected-for-batch {
+  filter:
+    drop-shadow(0 0 0.08rem #5b2b82)
+    drop-shadow(0 0 0.3rem rgba(91, 43, 130, 0.85));
+}
+
+.editor-map-tile.editor-road-trail {
+  box-shadow: inset 0 -8px 0 rgba(99, 72, 42, 0.45);
+}
+
+.editor-map-tile.editor-road-road {
+  box-shadow: inset 0 -10px 0 rgba(65, 59, 52, 0.72);
+}
+
+.tile-feature {
+  color: rgba(29, 29, 24, 0.72);
+  font-size: 9px;
+  line-height: 1;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-side-panel {
+  max-height: calc(100svh - 160px);
+  overflow: auto;
+}
+
+.editor-json-section {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.editor-json-textarea {
+  min-height: 180px;
+  resize: vertical;
+  border: 1px solid #d8d1bd;
+  border-radius: 6px;
+  background: #fffdf6;
+  color: #25251e;
+  font: 12px/1.45 Consolas, "Courier New", monospace;
+  padding: 10px;
 }
 
 .side-panel {

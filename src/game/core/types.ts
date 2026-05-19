@@ -34,9 +34,18 @@ export interface Tile extends HexCoord {
   settlementId?: string;
 }
 
+export interface TravelTask {
+  type: "travel";
+  path: HexCoord[];
+  currentSegmentIndex: number;
+  progressOnSegmentDays: number;
+  profileId: "walking";
+}
+
 export interface Settler extends HexCoord {
   id: string;
   movesLeft: number;
+  currentTask?: TravelTask;
 }
 
 export interface Settlement extends HexCoord {
@@ -55,10 +64,22 @@ export interface PlayerState {
   settlements: Settlement[];
 }
 
+export type GameSpeed = 0 | 1 | 2 | 3 | 4 | 5;
+
+export interface GameTime {
+  day: number;
+  year: number;
+  month: number;
+  dayOfMonth: number;
+  speed: GameSpeed;
+  paused: boolean;
+}
+
 export interface GameState {
   width: number;
   height: number;
   turn: number;
+  time: GameTime;
   tiles: Tile[];
   player: PlayerState;
 }

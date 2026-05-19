@@ -1,4 +1,5 @@
 import { hexToId } from "./hex";
+import { createInitialTime } from "./time";
 import type { GameState, Terrain, Tile } from "./types";
 
 const TERRAIN_SEQUENCE: Terrain[] = [
@@ -35,6 +36,7 @@ export function createInitialWorld(width: number, height: number): GameState {
     width,
     height,
     turn: 1,
+    time: createInitialTime(),
     tiles,
     player: {
       id: "player-1",
