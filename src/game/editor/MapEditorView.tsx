@@ -21,31 +21,28 @@ import type {
 } from "../data/maps/mapTypes";
 import { EditorSidePanel } from "./EditorSidePanel";
 import { EditorToolbar } from "./EditorToolbar";
-import {
-  addSelectedTile,
-  applyBrushToTile,
-  applyBrushToTiles,
-  tileDefinitionId,
-  toggleSelectedTile,
-} from "./editorMapActions";
+import { applyBrushToTile, tileDefinitionId } from "./editorMapActions";
 import type { BrushMode, BrushState } from "./editorTypes";
 import {
   createBlankMapDefinition,
+  createTerrainRingMapDefinition,
   parseMapDefinition,
   serializeMapDefinition,
 } from "./mapSerialization";
 
-const HEX_WIDTH = 56;
-const HEX_HEIGHT = 64;
+const HEX_SIZE = 36;
+const HEX_WIDTH = Math.sqrt(3) * HEX_SIZE;
+const HEX_HEIGHT = 2 * HEX_SIZE;
 const HEX_VERTICAL_STEP = HEX_HEIGHT * 0.75;
-const MAP_PADDING = 16;
+const ODD_ROW_OFFSET = HEX_WIDTH / 2;
+const MAP_PADDING = 18;
 
 function getHexPosition(tile: MapTileDefinition): CSSProperties {
   return {
     left:
       MAP_PADDING +
       tile.displayCol * HEX_WIDTH +
-      (tile.displayRow % 2 === 1 ? HEX_WIDTH / 2 : 0),
+      (tile.displayRow % 2 === 1 ? ODD_ROW_OFFSET : 0),
     top: MAP_PADDING + HEX_VERTICAL_STEP * tile.displayRow,
     width: HEX_WIDTH,
     height: HEX_HEIGHT,
@@ -63,26 +60,27 @@ function getTileFromPointer(
   return tileId ? tilesById.get(tileId) : undefined;
 }
 
+function createDefaultEditorMap() {
+  return createTerrainRingMapDefinition();
+}
+
 export function MapEditorView() {
-  const [map, setMap] = useState(() => createBlankMapDefinition(10, 10));
+  const [map, setMap] = useState(createDefaultEditorMap);
   const [selectedTileId, setSelectedTileId] = useState(() => {
-    const start = createBlankMapDefinition(10, 10).startingPosition;
+    const start = createDefaultEditorMap().startingPosition;
     return hexToId(start.q, start.r);
   });
-  const [selectedTileIds, setSelectedTileIds] = useState<string[]>([]);
   const [brushMode, setBrushMode] = useState<BrushMode>("terrain");
   const [terrainBrush, setTerrainBrush] = useState<Terrain>("plain");
   const [featureBrush, setFeatureBrush] = useState<FeatureType>("none");
   const [roadBrush, setRoadBrush] = useState<RoadLevel>("none");
   const [exportJson, setExportJson] = useState(() =>
-    serializeMapDefinition(createBlankMapDefinition(10, 10)),
+    serializeMapDefinition(createDefaultEditorMap()),
   );
   const [importJson, setImportJson] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const isPaintingRef = useRef(false);
-  const isSelectingRef = useRef(false);
   const paintedTileIdsRef = useRef(new Set<string>());
-  const selectionDragTileIdsRef = useRef(new Set<string>());
   const pointerCaptureRef = useRef<{
     element: HTMLElement;
     pointerId: number;
@@ -97,7 +95,7 @@ export function MapEditorView() {
   );
   const selectedTile = tilesById.get(selectedTileId);
   const mapWidth =
-    MAP_PADDING * 2 + HEX_WIDTH * map.width + (map.height > 1 ? HEX_WIDTH / 2 : 0);
+    MAP_PADDING * 2 + HEX_WIDTH * map.width + (map.height > 1 ? ODD_ROW_OFFSET : 0);
   const mapHeight =
     MAP_PADDING * 2 + HEX_VERTICAL_STEP * (map.height - 1) + HEX_HEIGHT;
 
@@ -107,8 +105,6 @@ export function MapEditorView() {
     feature: featureBrush,
     roadLevel: roadBrush,
   };
-  const canBatchApply =
-    selectedTileIds.length > 0 && brushMode !== "startingPosition";
 
   function applyBrush(tile: MapTileDefinition) {
     setSelectedTileId(tileDefinitionId(tile));
@@ -126,19 +122,6 @@ export function MapEditorView() {
     applyBrush(tile);
   }
 
-  function addSelectionOnceDuringDrag(tile: MapTileDefinition) {
-    const tileId = tileDefinitionId(tile);
-    if (selectionDragTileIdsRef.current.has(tileId)) {
-      return;
-    }
-
-    selectionDragTileIdsRef.current.add(tileId);
-    setSelectedTileId(tileId);
-    setSelectedTileIds((currentSelectedTileIds) =>
-      addSelectedTile(currentSelectedTileIds, tileId),
-    );
-  }
-
   function finishPointerInteraction() {
     if (pointerCaptureRef.current) {
       const { element, pointerId } = pointerCaptureRef.current;
@@ -149,60 +132,37 @@ export function MapEditorView() {
 
     pointerCaptureRef.current = null;
     isPaintingRef.current = false;
-    isSelectingRef.current = false;
     paintedTileIdsRef.current.clear();
-    selectionDragTileIdsRef.current.clear();
   }
 
   function handleTilePointerDown(
     event: PointerEvent<HTMLButtonElement>,
     tile: MapTileDefinition,
   ) {
+    if (event.button !== 0) {
+      return;
+    }
+
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     pointerCaptureRef.current = {
       element: event.currentTarget,
       pointerId: event.pointerId,
     };
-
-    const tileId = tileDefinitionId(tile);
-
-    if (event.button === 0) {
-      isPaintingRef.current = true;
-      isSelectingRef.current = false;
-      paintedTileIdsRef.current.clear();
-      applyBrushOnceDuringDrag(tile);
-      return;
-    }
-
-    if (event.button === 2) {
-      isSelectingRef.current = true;
-      isPaintingRef.current = false;
-      selectionDragTileIdsRef.current.clear();
-      selectionDragTileIdsRef.current.add(tileId);
-      setSelectedTileId(tileId);
-      setSelectedTileIds((currentSelectedTileIds) =>
-        toggleSelectedTile(currentSelectedTileIds, tileId),
-      );
-    }
+    isPaintingRef.current = true;
+    paintedTileIdsRef.current.clear();
+    applyBrushOnceDuringDrag(tile);
   }
 
   function handleMapPointerMove(event: PointerEvent<HTMLDivElement>) {
-    if (!isPaintingRef.current && !isSelectingRef.current) {
+    if (!isPaintingRef.current) {
       return;
     }
 
     const tile = getTileFromPointer(event, tilesById);
-    if (!tile) {
-      return;
-    }
-
-    if (isPaintingRef.current) {
+    if (tile) {
       applyBrushOnceDuringDrag(tile);
-      return;
     }
-
-    addSelectionOnceDuringDrag(tile);
   }
 
   function handleExport() {
@@ -217,7 +177,6 @@ export function MapEditorView() {
       setSelectedTileId(
         hexToId(parsedMap.startingPosition.q, parsedMap.startingPosition.r),
       );
-      setSelectedTileIds([]);
       setExportJson(serializeMapDefinition(parsedMap));
       setErrorMessage(undefined);
     } catch (error) {
@@ -237,14 +196,19 @@ export function MapEditorView() {
     setErrorMessage(undefined);
   }
 
-  function handleApplyBrushToSelection() {
-    if (brushMode === "startingPosition" || selectedTileIds.length === 0) {
-      return;
-    }
+  function handleResetBlankMap() {
+    const blankMap = createBlankMapDefinition();
+    setMap(blankMap);
+    setSelectedTileId(hexToId(blankMap.startingPosition.q, blankMap.startingPosition.r));
+    setExportJson(serializeMapDefinition(blankMap));
+    setErrorMessage(undefined);
+  }
 
-    setMap((currentMap) =>
-      applyBrushToTiles(currentMap, selectedTileIds, brush),
-    );
+  function handleResetTerrainRingMap() {
+    const ringMap = createDefaultEditorMap();
+    setMap(ringMap);
+    setSelectedTileId(hexToId(ringMap.startingPosition.q, ringMap.startingPosition.r));
+    setExportJson(serializeMapDefinition(ringMap));
     setErrorMessage(undefined);
   }
 
@@ -283,7 +247,6 @@ export function MapEditorView() {
           <div
             aria-label="地图绘制网格"
             className="grid-map editor-grid-map"
-            onContextMenu={(event) => event.preventDefault()}
             onPointerCancel={finishPointerInteraction}
             onPointerLeave={finishPointerInteraction}
             onPointerMove={handleMapPointerMove}
@@ -297,7 +260,6 @@ export function MapEditorView() {
               const isStart =
                 tile.q === map.startingPosition.q &&
                 tile.r === map.startingPosition.r;
-              const isBatchSelected = selectedTileIds.includes(tileId);
 
               return (
                 <button
@@ -307,7 +269,6 @@ export function MapEditorView() {
                     "editor-map-tile",
                     `terrain-${tile.terrain}`,
                     isSelected ? "selected" : "",
-                    isBatchSelected ? "selected-for-batch" : "",
                     isStart ? "editor-starting-position" : "",
                     tile.roadLevel !== "none"
                       ? `editor-road-${tile.roadLevel}`
@@ -317,7 +278,6 @@ export function MapEditorView() {
                     .join(" ")}
                   data-tile-id={tileId}
                   key={tileId}
-                  onContextMenu={(event) => event.preventDefault()}
                   onPointerDown={(event) => handleTilePointerDown(event, tile)}
                   role="gridcell"
                   style={getHexPosition(tile)}
@@ -350,14 +310,12 @@ export function MapEditorView() {
           exportJson={exportJson}
           importJson={importJson}
           map={map}
-          selectedTileCount={selectedTileIds.length}
           selectedTile={selectedTile}
-          canBatchApply={canBatchApply}
-          onApplyBrushToSelection={handleApplyBrushToSelection}
-          onClearSelection={() => setSelectedTileIds([])}
           onExport={handleExport}
           onImport={handleImport}
           onImportJsonChange={setImportJson}
+          onResetBlankMap={handleResetBlankMap}
+          onResetTerrainRingMap={handleResetTerrainRingMap}
           onSetStartingPosition={handleSetStartingPosition}
         />
       </div>

@@ -10,14 +10,12 @@ interface EditorSidePanelProps {
   exportJson: string;
   importJson: string;
   map: MapDefinition;
-  selectedTileCount: number;
   selectedTile: MapTileDefinition | undefined;
-  canBatchApply: boolean;
-  onApplyBrushToSelection: () => void;
-  onClearSelection: () => void;
   onExport: () => void;
   onImport: () => void;
   onImportJsonChange: (json: string) => void;
+  onResetBlankMap: () => void;
+  onResetTerrainRingMap: () => void;
   onSetStartingPosition: () => void;
 }
 
@@ -26,14 +24,12 @@ export function EditorSidePanel({
   exportJson,
   importJson,
   map,
-  selectedTileCount,
   selectedTile,
-  canBatchApply,
-  onApplyBrushToSelection,
-  onClearSelection,
   onExport,
   onImport,
   onImportJsonChange,
+  onResetBlankMap,
+  onResetTerrainRingMap,
   onSetStartingPosition,
 }: EditorSidePanelProps) {
   const selectedIsStart =
@@ -90,26 +86,20 @@ export function EditorSidePanel({
         设为起始点
       </button>
 
-      <div className="editor-selection-tools">
-        <div className="detail-row">
-          <span>已选中地块</span>
-          <strong>{selectedTileCount}</strong>
-        </div>
+      <div className="editor-map-actions">
         <button
-          className="editor-primary-button"
-          disabled={!canBatchApply}
-          onClick={onApplyBrushToSelection}
+          className="editor-primary-button secondary"
+          onClick={onResetTerrainRingMap}
           type="button"
         >
-          应用当前画笔到选中格
+          重置为地形环带模板
         </button>
         <button
           className="editor-primary-button secondary"
-          disabled={selectedTileCount === 0}
-          onClick={onClearSelection}
+          onClick={onResetBlankMap}
           type="button"
         >
-          清空选择
+          重置为空白地图
         </button>
       </div>
 

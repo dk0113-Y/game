@@ -1,28 +1,15 @@
 import { describe, expect, it } from "vitest";
-import {
-  addSelectedTile,
-  applyBrushToTiles,
-  toggleSelectedTile,
-} from "../game/editor/editorMapActions";
+import { applyBrushToTile } from "../game/editor/editorMapActions";
 import { createBlankMapDefinition } from "../game/editor/mapSerialization";
 
 describe("editor map actions", () => {
-  it("toggles a selected tile id", () => {
-    expect(toggleSelectedTile([], "hex-1-1")).toEqual(["hex-1-1"]);
-    expect(toggleSelectedTile(["hex-1-1"], "hex-1-1")).toEqual([]);
-  });
-
-  it("adds a selected tile id without toggling during drag", () => {
-    expect(addSelectedTile(["hex-1-1"], "hex-1-1")).toEqual(["hex-1-1"]);
-    expect(addSelectedTile(["hex-1-1"], "hex-2-1")).toEqual([
-      "hex-1-1",
-      "hex-2-1",
-    ]);
-  });
-
-  it("applies a terrain brush to selected tiles", () => {
+  it("applies a terrain brush to one tile", () => {
     const map = createBlankMapDefinition(3, 3);
-    const nextMap = applyBrushToTiles(map, ["hex-1-1", "hex-2-1"], {
+    const tile = map.tiles.find((currentTile) => currentTile.displayCol === 1 && currentTile.displayRow === 1);
+
+    expect(tile).toBeDefined();
+
+    const nextMap = applyBrushToTile(map, tile ?? map.tiles[0], {
       mode: "terrain",
       terrain: "mountain",
       feature: "none",
@@ -30,19 +17,21 @@ describe("editor map actions", () => {
     });
 
     expect(
-      nextMap.tiles.filter((tile) => tile.terrain === "mountain"),
-    ).toHaveLength(2);
+      nextMap.tiles.filter((currentTile) => currentTile.terrain === "mountain"),
+    ).toHaveLength(1);
   });
 
-  it("does not batch apply starting position brush", () => {
+  it("sets starting position with the starting position brush", () => {
     const map = createBlankMapDefinition(3, 3);
-    const nextMap = applyBrushToTiles(map, ["hex-0-0"], {
+    const tile = map.tiles[0];
+    const nextMap = applyBrushToTile(map, tile, {
       mode: "startingPosition",
       terrain: "mountain",
       feature: "wild_horse",
       roadLevel: "road",
     });
 
-    expect(nextMap).toEqual(map);
+    expect(nextMap.startingPosition).toEqual({ q: tile.q, r: tile.r });
+    expect(nextMap.tiles).toEqual(map.tiles);
   });
 });
