@@ -1,3 +1,4 @@
+import { hexToId } from "../core/hex";
 import type { Terrain } from "../core/types";
 import type {
   FeatureType,
@@ -19,12 +20,20 @@ export const FEATURE_TYPES: FeatureType[] = [
 export const ROAD_LEVELS: RoadLevel[] = ["none", "trail", "road"];
 
 export const EDITOR_TERRAINS: Terrain[] = [
-  "grassland",
-  "forest",
+  "plain",
   "hill",
-  "river",
-  "coast",
+  "plateau",
+  "mountain",
+  "peak",
+  "lake",
 ];
+
+export function offsetToAxial(displayCol: number, displayRow: number) {
+  return {
+    q: displayCol - Math.floor(displayRow / 2),
+    r: displayRow,
+  };
+}
 
 function isTerrain(value: unknown): value is Terrain {
   return typeof value === "string" && EDITOR_TERRAINS.includes(value as Terrain);
@@ -56,6 +65,8 @@ function parseTile(value: unknown): MapTileDefinition {
   const tile = value as Partial<MapTileDefinition>;
   const q = assertInteger(tile.q, "tile.q");
   const r = assertInteger(tile.r, "tile.r");
+  const displayCol = assertInteger(tile.displayCol, "tile.displayCol");
+  const displayRow = assertInteger(tile.displayRow, "tile.displayRow");
 
   if (!isTerrain(tile.terrain)) {
     throw new Error("tile.terrain 无效。");
@@ -72,6 +83,8 @@ function parseTile(value: unknown): MapTileDefinition {
   return {
     q,
     r,
+    displayCol,
+    displayRow,
     terrain: tile.terrain,
     feature: tile.feature,
     roadLevel: tile.roadLevel,
@@ -88,25 +101,28 @@ export function createBlankMapDefinition(
 
   const tiles: MapTileDefinition[] = [];
 
-  for (let r = 0; r < height; r += 1) {
-    for (let q = 0; q < width; q += 1) {
+  for (let displayRow = 0; displayRow < height; displayRow += 1) {
+    for (let displayCol = 0; displayCol < width; displayCol += 1) {
+      const axial = offsetToAxial(displayCol, displayRow);
+
       tiles.push({
-        q,
-        r,
-        terrain: "grassland",
+        ...axial,
+        displayCol,
+        displayRow,
+        terrain: "plain",
         feature: "none",
         roadLevel: "none",
       });
     }
   }
 
+  const startDisplayCol = Math.floor(width / 2);
+  const startDisplayRow = Math.floor(height / 2);
+
   return {
     width,
     height,
-    startingPosition: {
-      q: Math.floor(width / 2),
-      r: Math.floor(height / 2),
-    },
+    startingPosition: offsetToAxial(startDisplayCol, startDisplayRow),
     tiles,
   };
 }
@@ -138,15 +154,6 @@ export function parseMapDefinition(json: string): MapDefinition {
     r: assertInteger(map.startingPosition.r, "startingPosition.r"),
   };
 
-  if (
-    startingPosition.q < 0 ||
-    startingPosition.q >= width ||
-    startingPosition.r < 0 ||
-    startingPosition.r >= height
-  ) {
-    throw new Error("startingPosition 超出地图范围。");
-  }
-
   if (!Array.isArray(map.tiles)) {
     throw new Error("tiles 必须是数组。");
   }
@@ -156,10 +163,35 @@ export function parseMapDefinition(json: string): MapDefinition {
     throw new Error("tiles 数量与地图尺寸不匹配。");
   }
 
+  const tileIds = new Set<string>();
+  const displayIds = new Set<string>();
   for (const tile of tiles) {
-    if (tile.q < 0 || tile.q >= width || tile.r < 0 || tile.r >= height) {
-      throw new Error("tile 坐标超出地图范围。");
+    if (
+      tile.displayCol < 0 ||
+      tile.displayCol >= width ||
+      tile.displayRow < 0 ||
+      tile.displayRow >= height
+    ) {
+      throw new Error("tile 视觉坐标超出地图范围。");
     }
+
+    const expectedAxial = offsetToAxial(tile.displayCol, tile.displayRow);
+    if (tile.q !== expectedAxial.q || tile.r !== expectedAxial.r) {
+      throw new Error("tile 轴向坐标与视觉坐标不匹配。");
+    }
+
+    const tileId = hexToId(tile.q, tile.r);
+    const displayId = `${tile.displayCol},${tile.displayRow}`;
+    if (tileIds.has(tileId) || displayIds.has(displayId)) {
+      throw new Error("地图包含重复地块。");
+    }
+
+    tileIds.add(tileId);
+    displayIds.add(displayId);
+  }
+
+  if (!tileIds.has(hexToId(startingPosition.q, startingPosition.r))) {
+    throw new Error("startingPosition 超出地图范围。");
   }
 
   return {

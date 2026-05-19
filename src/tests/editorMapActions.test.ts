@@ -24,13 +24,13 @@ describe("editor map actions", () => {
     const map = createBlankMapDefinition(3, 3);
     const nextMap = applyBrushToTiles(map, ["hex-1-1", "hex-2-1"], {
       mode: "terrain",
-      terrain: "forest",
+      terrain: "mountain",
       feature: "none",
       roadLevel: "none",
     });
 
     expect(
-      nextMap.tiles.filter((tile) => tile.terrain === "forest"),
+      nextMap.tiles.filter((tile) => tile.terrain === "mountain"),
     ).toHaveLength(2);
   });
 
@@ -38,7 +38,7 @@ describe("editor map actions", () => {
     const map = createBlankMapDefinition(3, 3);
     const nextMap = applyBrushToTiles(map, ["hex-0-0"], {
       mode: "startingPosition",
-      terrain: "forest",
+      terrain: "mountain",
       feature: "wild_horse",
       roadLevel: "road",
     });

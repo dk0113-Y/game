@@ -18,10 +18,27 @@ describe("map serialization", () => {
     expect(map.tiles[0]).toMatchObject({
       q: 0,
       r: 0,
-      terrain: "grassland",
+      displayCol: 0,
+      displayRow: 0,
+      terrain: "plain",
       feature: "none",
       roadLevel: "none",
     });
+  });
+
+  it("creates a rectangular visual layout with offset axial coordinates", () => {
+    const map = createBlankMapDefinition(10, 10);
+
+    expect(map.tiles).toHaveLength(100);
+    for (let row = 0; row < 10; row += 1) {
+      expect(map.tiles.filter((tile) => tile.displayRow === row)).toHaveLength(
+        10,
+      );
+    }
+    expect(map.tiles.find((tile) => tile.displayCol === 0 && tile.displayRow === 1))
+      .toMatchObject({ q: 0, r: 1 });
+    expect(map.tiles.find((tile) => tile.displayCol === 0 && tile.displayRow === 2))
+      .toMatchObject({ q: -1, r: 2 });
   });
 
   it("round trips a map definition through JSON", () => {
@@ -33,7 +50,7 @@ describe("map serialization", () => {
         tile.q === 1 && tile.r === 1
           ? {
               ...tile,
-              terrain: "forest" as const,
+              terrain: "mountain" as const,
               feature: "wild_horse" as const,
               roadLevel: "trail" as const,
             }

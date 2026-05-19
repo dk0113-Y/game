@@ -2,19 +2,21 @@ import type { Terrain } from "../core/types";
 import type { FeatureType, RoadLevel } from "./maps/mapTypes";
 
 export const TERRAIN_LABELS: Record<Terrain, string> = {
-  grassland: "草原",
-  forest: "森林",
+  plain: "平原",
   hill: "丘陵",
-  river: "河流",
-  coast: "海岸",
+  plateau: "高原",
+  mountain: "山地",
+  peak: "山峰",
+  lake: "湖泊",
 };
 
 export const TERRAIN_SHORT_LABELS: Record<Terrain, string> = {
-  grassland: "草",
-  forest: "林",
+  plain: "平",
   hill: "丘",
-  river: "河",
-  coast: "岸",
+  plateau: "高",
+  mountain: "山",
+  peak: "峰",
+  lake: "湖",
 };
 
 export const FEATURE_LABELS: Record<FeatureType, string> = {

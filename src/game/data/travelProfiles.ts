@@ -17,11 +17,12 @@ export const travelProfiles: Record<TravelProfileId, TravelProfile> = {
     label: "Walking",
     baseKmPerDay: 25,
     terrainCostMultiplier: {
-      grassland: 1,
-      forest: 1.8,
+      plain: 1,
       hill: 1.6,
-      river: 1.2,
-      coast: 1.1,
+      plateau: 1.4,
+      mountain: 2.4,
+      peak: 8,
+      lake: 3,
     },
   },
 };

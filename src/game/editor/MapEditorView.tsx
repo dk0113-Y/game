@@ -35,26 +35,43 @@ import {
   serializeMapDefinition,
 } from "./mapSerialization";
 
-const HEX_WIDTH = 72;
+const HEX_WIDTH = 56;
 const HEX_HEIGHT = 64;
 const HEX_VERTICAL_STEP = HEX_HEIGHT * 0.75;
-const MAP_PADDING = 12;
+const MAP_PADDING = 16;
 
 function getHexPosition(tile: MapTileDefinition): CSSProperties {
   return {
-    left: MAP_PADDING + HEX_WIDTH * (tile.q + tile.r / 2),
-    top: MAP_PADDING + HEX_VERTICAL_STEP * tile.r,
+    left:
+      MAP_PADDING +
+      tile.displayCol * HEX_WIDTH +
+      (tile.displayRow % 2 === 1 ? HEX_WIDTH / 2 : 0),
+    top: MAP_PADDING + HEX_VERTICAL_STEP * tile.displayRow,
     width: HEX_WIDTH,
     height: HEX_HEIGHT,
   };
 }
 
+function getTileFromPointer(
+  event: PointerEvent<HTMLElement>,
+  tilesById: Map<string, MapTileDefinition>,
+) {
+  const target = document.elementFromPoint(event.clientX, event.clientY);
+  const tileElement = target?.closest<HTMLElement>("[data-tile-id]");
+  const tileId = tileElement?.dataset.tileId;
+
+  return tileId ? tilesById.get(tileId) : undefined;
+}
+
 export function MapEditorView() {
   const [map, setMap] = useState(() => createBlankMapDefinition(10, 10));
-  const [selectedTileId, setSelectedTileId] = useState(() => hexToId(5, 5));
+  const [selectedTileId, setSelectedTileId] = useState(() => {
+    const start = createBlankMapDefinition(10, 10).startingPosition;
+    return hexToId(start.q, start.r);
+  });
   const [selectedTileIds, setSelectedTileIds] = useState<string[]>([]);
   const [brushMode, setBrushMode] = useState<BrushMode>("terrain");
-  const [terrainBrush, setTerrainBrush] = useState<Terrain>("grassland");
+  const [terrainBrush, setTerrainBrush] = useState<Terrain>("plain");
   const [featureBrush, setFeatureBrush] = useState<FeatureType>("none");
   const [roadBrush, setRoadBrush] = useState<RoadLevel>("none");
   const [exportJson, setExportJson] = useState(() =>
@@ -66,14 +83,21 @@ export function MapEditorView() {
   const isSelectingRef = useRef(false);
   const paintedTileIdsRef = useRef(new Set<string>());
   const selectionDragTileIdsRef = useRef(new Set<string>());
+  const pointerCaptureRef = useRef<{
+    element: HTMLElement;
+    pointerId: number;
+  } | null>(null);
 
-  const selectedTile = useMemo(
+  const tilesById = useMemo(
     () =>
-      map.tiles.find((tile) => hexToId(tile.q, tile.r) === selectedTileId),
-    [map.tiles, selectedTileId],
+      new Map(
+        map.tiles.map((tile) => [tileDefinitionId(tile), tile] as const),
+      ),
+    [map.tiles],
   );
+  const selectedTile = tilesById.get(selectedTileId);
   const mapWidth =
-    MAP_PADDING * 2 + HEX_WIDTH * (map.width + (map.height - 1) / 2);
+    MAP_PADDING * 2 + HEX_WIDTH * map.width + (map.height > 1 ? HEX_WIDTH / 2 : 0);
   const mapHeight =
     MAP_PADDING * 2 + HEX_VERTICAL_STEP * (map.height - 1) + HEX_HEIGHT;
 
@@ -83,10 +107,11 @@ export function MapEditorView() {
     feature: featureBrush,
     roadLevel: roadBrush,
   };
-  const canBatchApply = selectedTileIds.length > 0 && brushMode !== "startingPosition";
+  const canBatchApply =
+    selectedTileIds.length > 0 && brushMode !== "startingPosition";
 
   function applyBrush(tile: MapTileDefinition) {
-    setSelectedTileId(hexToId(tile.q, tile.r));
+    setSelectedTileId(tileDefinitionId(tile));
     setErrorMessage(undefined);
     setMap((currentMap) => applyBrushToTile(currentMap, tile, brush));
   }
@@ -115,6 +140,14 @@ export function MapEditorView() {
   }
 
   function finishPointerInteraction() {
+    if (pointerCaptureRef.current) {
+      const { element, pointerId } = pointerCaptureRef.current;
+      if (element.hasPointerCapture(pointerId)) {
+        element.releasePointerCapture(pointerId);
+      }
+    }
+
+    pointerCaptureRef.current = null;
     isPaintingRef.current = false;
     isSelectingRef.current = false;
     paintedTileIdsRef.current.clear();
@@ -126,6 +159,12 @@ export function MapEditorView() {
     tile: MapTileDefinition,
   ) {
     event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    pointerCaptureRef.current = {
+      element: event.currentTarget,
+      pointerId: event.pointerId,
+    };
+
     const tileId = tileDefinitionId(tile);
 
     if (event.button === 0) {
@@ -148,15 +187,22 @@ export function MapEditorView() {
     }
   }
 
-  function handleTilePointerOver(tile: MapTileDefinition) {
+  function handleMapPointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (!isPaintingRef.current && !isSelectingRef.current) {
+      return;
+    }
+
+    const tile = getTileFromPointer(event, tilesById);
+    if (!tile) {
+      return;
+    }
+
     if (isPaintingRef.current) {
       applyBrushOnceDuringDrag(tile);
       return;
     }
 
-    if (isSelectingRef.current) {
-      addSelectionOnceDuringDrag(tile);
-    }
+    addSelectionOnceDuringDrag(tile);
   }
 
   function handleExport() {
@@ -233,19 +279,20 @@ export function MapEditorView() {
       />
 
       <div className="game-layout editor-layout">
-        <div className="map-wrap">
+        <div className="map-wrap editor-map-wrap">
           <div
             aria-label="地图绘制网格"
-            className="grid-map"
+            className="grid-map editor-grid-map"
             onContextMenu={(event) => event.preventDefault()}
             onPointerCancel={finishPointerInteraction}
             onPointerLeave={finishPointerInteraction}
+            onPointerMove={handleMapPointerMove}
             onPointerUp={finishPointerInteraction}
             role="grid"
             style={{ width: mapWidth, height: mapHeight }}
           >
             {map.tiles.map((tile) => {
-              const tileId = hexToId(tile.q, tile.r);
+              const tileId = tileDefinitionId(tile);
               const isSelected = tileId === selectedTileId;
               const isStart =
                 tile.q === map.startingPosition.q &&
@@ -268,11 +315,10 @@ export function MapEditorView() {
                   ]
                     .filter(Boolean)
                     .join(" ")}
+                  data-tile-id={tileId}
                   key={tileId}
                   onContextMenu={(event) => event.preventDefault()}
                   onPointerDown={(event) => handleTilePointerDown(event, tile)}
-                  onPointerEnter={() => handleTilePointerOver(tile)}
-                  onPointerMove={() => handleTilePointerOver(tile)}
                   role="gridcell"
                   style={getHexPosition(tile)}
                   type="button"
@@ -291,7 +337,7 @@ export function MapEditorView() {
                       : ""}
                   </span>
                   <span className="tile-coords">
-                    {tile.q},{tile.r}
+                    {tile.displayCol},{tile.displayRow}
                   </span>
                 </button>
               );

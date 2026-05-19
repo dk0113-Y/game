@@ -41,6 +41,12 @@ button {
   color: #25251e;
 }
 
+.editor-shell {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  min-height: calc(100svh - 43px);
+}
+
 .game-header {
   display: flex;
   align-items: center;
@@ -192,24 +198,28 @@ button {
   text-align: center;
 }
 
-.terrain-grassland {
-  background: #b9d882;
-}
-
-.terrain-forest {
-  background: #6fa46c;
+.terrain-plain {
+  background: #c8d989;
 }
 
 .terrain-hill {
-  background: #c3aa78;
+  background: #c2ad75;
 }
 
-.terrain-river {
-  background: #82bdd7;
+.terrain-plateau {
+  background: #b9a96d;
 }
 
-.terrain-coast {
-  background: #decf99;
+.terrain-mountain {
+  background: #9c9a91;
+}
+
+.terrain-peak {
+  background: #d7d6d0;
+}
+
+.terrain-lake {
+  background: #7fb8d2;
 }
 
 .editor-toolbar {
@@ -218,6 +228,30 @@ button {
   border-bottom: 1px solid #d8d1bd;
   background: #f0eadb;
   padding: 14px 28px;
+}
+
+.editor-layout {
+  grid-template-columns: minmax(0, 1fr) 320px;
+  min-height: 0;
+  padding: 16px;
+}
+
+.editor-map-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #d8d1bd;
+  border-radius: 8px;
+  background: #eee6d2;
+  padding: 16px;
+}
+
+.editor-grid-map {
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .editor-tool-group {
@@ -276,6 +310,8 @@ button {
 
 .editor-map-tile {
   font-size: 11px;
+  grid-template-rows: auto 1fr auto auto;
+  padding: 6px 6px;
 }
 
 .editor-map-tile.editor-starting-position {
@@ -284,17 +320,32 @@ button {
 }
 
 .editor-map-tile.selected-for-batch {
-  filter:
-    drop-shadow(0 0 0.08rem #5b2b82)
-    drop-shadow(0 0 0.3rem rgba(91, 43, 130, 0.85));
+  box-shadow:
+    inset 0 0 0 4px rgba(77, 70, 229, 0.92),
+    inset 0 0 0 999px rgba(79, 70, 229, 0.18);
+  filter: drop-shadow(0 0 0.2rem rgba(79, 70, 229, 0.65));
 }
 
 .editor-map-tile.editor-road-trail {
-  box-shadow: inset 0 -8px 0 rgba(99, 72, 42, 0.45);
+  box-shadow: inset 0 -7px 0 rgba(99, 72, 42, 0.45);
 }
 
 .editor-map-tile.editor-road-road {
-  box-shadow: inset 0 -10px 0 rgba(65, 59, 52, 0.72);
+  box-shadow: inset 0 -8px 0 rgba(65, 59, 52, 0.72);
+}
+
+.editor-map-tile.selected-for-batch.editor-road-trail {
+  box-shadow:
+    inset 0 0 0 4px rgba(77, 70, 229, 0.92),
+    inset 0 0 0 999px rgba(79, 70, 229, 0.18),
+    inset 0 -7px 0 rgba(99, 72, 42, 0.45);
+}
+
+.editor-map-tile.selected-for-batch.editor-road-road {
+  box-shadow:
+    inset 0 0 0 4px rgba(77, 70, 229, 0.92),
+    inset 0 0 0 999px rgba(79, 70, 229, 0.18),
+    inset 0 -8px 0 rgba(65, 59, 52, 0.72);
 }
 
 .tile-feature {
@@ -308,7 +359,8 @@ button {
 }
 
 .editor-side-panel {
-  max-height: calc(100svh - 160px);
+  width: 320px;
+  max-height: calc(100svh - 180px);
   overflow: auto;
 }
 
@@ -382,6 +434,14 @@ button {
   .game-layout {
     grid-template-columns: 1fr;
     padding: 18px;
+  }
+
+  .editor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-side-panel {
+    width: auto;
   }
 
   .grid-map {

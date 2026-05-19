@@ -1,8 +1,8 @@
 import type { Terrain, TerrainRule } from "../core/types";
 
 export const terrainRules: Record<Terrain, TerrainRule> = {
-  grassland: {
-    label: "Grassland",
+  plain: {
+    label: "平原",
     potential: {
       food: 2,
       wood: 0,
@@ -12,19 +12,8 @@ export const terrainRules: Record<Terrain, TerrainRule> = {
     moveCost: 1,
     canFoundSettlement: true,
   },
-  forest: {
-    label: "Forest",
-    potential: {
-      food: 1,
-      wood: 2,
-      stone: 0,
-      knowledge: 0,
-    },
-    moveCost: 2,
-    canFoundSettlement: true,
-  },
   hill: {
-    label: "Hill",
+    label: "丘陵",
     potential: {
       food: 0,
       wood: 1,
@@ -34,26 +23,49 @@ export const terrainRules: Record<Terrain, TerrainRule> = {
     moveCost: 2,
     canFoundSettlement: true,
   },
-  river: {
-    label: "River",
+  plateau: {
+    label: "高原",
+    potential: {
+      food: 1,
+      wood: 0,
+      stone: 1,
+      knowledge: 0,
+    },
+    moveCost: 2,
+    canFoundSettlement: true,
+  },
+  mountain: {
+    label: "山地",
+    potential: {
+      food: 0,
+      wood: 1,
+      stone: 3,
+      knowledge: 0,
+    },
+    moveCost: 4,
+    canFoundSettlement: false,
+  },
+  peak: {
+    label: "山峰",
+    potential: {
+      food: 0,
+      wood: 0,
+      stone: 4,
+      knowledge: 1,
+    },
+    moveCost: 99,
+    canFoundSettlement: false,
+    blocked: true,
+  },
+  lake: {
+    label: "湖泊",
     potential: {
       food: 2,
       wood: 0,
       stone: 0,
       knowledge: 1,
     },
-    moveCost: 1,
-    canFoundSettlement: true,
-  },
-  coast: {
-    label: "Coast",
-    potential: {
-      food: 1,
-      wood: 0,
-      stone: 0,
-      knowledge: 1,
-    },
-    moveCost: 1,
-    canFoundSettlement: true,
+    moveCost: 3,
+    canFoundSettlement: false,
   },
 };

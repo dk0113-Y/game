@@ -12,6 +12,8 @@ export type FeatureType =
 export type RoadLevel = "none" | "trail" | "road";
 
 export interface MapTileDefinition extends HexCoord {
+  displayCol: number;
+  displayRow: number;
   terrain: Terrain;
   feature: FeatureType;
   roadLevel: RoadLevel;

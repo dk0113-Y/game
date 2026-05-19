@@ -24,7 +24,7 @@ function createWorldWithTerrain(
 
 describe("pathfinding and travel tasks", () => {
   it("finds an adjacent path", () => {
-    const state = createWorldWithTerrain(3, 3, "grassland");
+    const state = createWorldWithTerrain(3, 3, "plain");
     const path = findPath(state, { q: 1, r: 1 }, { q: 2, r: 1 }, "walking");
 
     expect(path).toEqual([
@@ -34,7 +34,7 @@ describe("pathfinding and travel tasks", () => {
   });
 
   it("finds a multi-hex path", () => {
-    const state = createWorldWithTerrain(5, 5, "grassland");
+    const state = createWorldWithTerrain(5, 5, "plain");
     const path = findPath(state, { q: 1, r: 1 }, { q: 4, r: 1 }, "walking");
 
     expect(path[0]).toEqual({ q: 1, r: 1 });
@@ -42,30 +42,30 @@ describe("pathfinding and travel tasks", () => {
     expect(path.length).toBeGreaterThan(2);
   });
 
-  it("assigns higher travel cost to forest than grassland", () => {
+  it("assigns higher travel cost to mountain than plain", () => {
     const state = createInitialWorld(3, 3);
-    const grasslandTile = getTileAt(
-      createWorldWithTerrain(3, 3, "grassland"),
+    const plainTile = getTileAt(
+      createWorldWithTerrain(3, 3, "plain"),
       1,
       1,
     );
-    const forestTile = getTileAt(
-      createWorldWithTerrain(3, 3, "forest"),
+    const mountainTile = getTileAt(
+      createWorldWithTerrain(3, 3, "mountain"),
       1,
       1,
     );
 
-    expect(grasslandTile).toBeDefined();
-    expect(forestTile).toBeDefined();
+    expect(plainTile).toBeDefined();
+    expect(mountainTile).toBeDefined();
     expect(
-      getTileTravelCostDays(forestTile ?? state.tiles[0], "walking"),
+      getTileTravelCostDays(mountainTile ?? state.tiles[0], "walking"),
     ).toBeGreaterThan(
-      getTileTravelCostDays(grasslandTile ?? state.tiles[0], "walking"),
+      getTileTravelCostDays(plainTile ?? state.tiles[0], "walking"),
     );
   });
 
   it("writes a travel task when starting travel", () => {
-    const state = createWorldWithTerrain(5, 5, "grassland");
+    const state = createWorldWithTerrain(5, 5, "plain");
     const nextState = startTravel(state, "settler-1", 4, 2);
     const settler = getSettler(nextState, "settler-1");
     const task = settler?.currentTask;
@@ -83,7 +83,7 @@ describe("pathfinding and travel tasks", () => {
 
   it("advances travel on daily tick", () => {
     const state = startTravel(
-      createWorldWithTerrain(10, 5, "grassland"),
+      createWorldWithTerrain(10, 5, "plain"),
       "settler-1",
       9,
       2,
@@ -97,7 +97,7 @@ describe("pathfinding and travel tasks", () => {
 
   it("clears the travel task after reaching the destination", () => {
     const state = startTravel(
-      createWorldWithTerrain(5, 5, "grassland"),
+      createWorldWithTerrain(5, 5, "plain"),
       "settler-1",
       3,
       2,

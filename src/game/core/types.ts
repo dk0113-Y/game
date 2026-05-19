@@ -1,4 +1,10 @@
-export type Terrain = "grassland" | "forest" | "hill" | "river" | "coast";
+export type Terrain =
+  | "plain"
+  | "hill"
+  | "plateau"
+  | "mountain"
+  | "peak"
+  | "lake";
 
 export interface HexCoord {
   q: number;
@@ -17,6 +23,7 @@ export interface TerrainRule {
   potential: ResourceYield;
   moveCost: number;
   canFoundSettlement: boolean;
+  blocked?: boolean;
 }
 
 export type ImprovementType = "farm" | "lumberCamp" | "quarry" | "study";

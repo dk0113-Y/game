@@ -3,11 +3,13 @@ import { createInitialTime } from "./time";
 import type { GameState, Terrain, Tile } from "./types";
 
 const TERRAIN_SEQUENCE: Terrain[] = [
-  "grassland",
-  "forest",
+  "plain",
   "hill",
-  "river",
-  "coast",
+  "plateau",
+  "mountain",
+  "plain",
+  "plain",
+  "lake",
 ];
 
 function createTile(q: number, r: number): Tile {

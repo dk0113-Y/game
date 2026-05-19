@@ -16,9 +16,9 @@ function createWorldWithCenterTerrain(terrain: Terrain): GameState {
 }
 
 describe("terrain rules", () => {
-  it("stores terrain potential without direct baseYield output", () => {
-    expect(terrainRules.grassland).toMatchObject({
-      label: "Grassland",
+  it("stores plain terrain potential without direct baseYield output", () => {
+    expect(terrainRules.plain).toMatchObject({
+      label: "平原",
       moveCost: 1,
       canFoundSettlement: true,
       potential: {
@@ -28,10 +28,10 @@ describe("terrain rules", () => {
         knowledge: 0,
       },
     });
-    expect("baseYield" in terrainRules.grassland).toBe(false);
+    expect("baseYield" in terrainRules.plain).toBe(false);
   });
 
-  it("spends 2 moves when a settler moves into forest", () => {
+  it("spends 2 moves when a settler moves into hill", () => {
     const state = createInitialWorld(3, 3);
     const nextState = moveSettler(state, "settler-1", 0, 1);
 
@@ -59,28 +59,18 @@ describe("terrain rules", () => {
   it("allows founding only when terrain canFoundSettlement is true", () => {
     expect(() =>
       foundSettlement(
-        createWorldWithCenterTerrain("grassland"),
+        createWorldWithCenterTerrain("plain"),
         "settler-1",
         "Founding Test",
       ),
     ).not.toThrow();
 
-    const originalCoastRule = terrainRules.coast;
-    terrainRules.coast = {
-      ...originalCoastRule,
-      canFoundSettlement: false,
-    };
-
-    try {
-      expect(() =>
-        foundSettlement(
-          createWorldWithCenterTerrain("coast"),
-          "settler-1",
-          "Blocked Test",
-        ),
-      ).toThrow("Cannot found");
-    } finally {
-      terrainRules.coast = originalCoastRule;
-    }
+    expect(() =>
+      foundSettlement(
+        createWorldWithCenterTerrain("peak"),
+        "settler-1",
+        "Blocked Test",
+      ),
+    ).toThrow("Cannot found");
   });
 });

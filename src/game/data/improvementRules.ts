@@ -3,7 +3,7 @@ import type { ImprovementRule, ImprovementType } from "../core/types";
 export const improvementRules: Record<ImprovementType, ImprovementRule> = {
   farm: {
     label: "Farm",
-    allowedTerrains: ["grassland", "river", "coast"],
+    allowedTerrains: ["plain", "plateau"],
     yield: {
       food: 1,
       wood: 0,
@@ -13,7 +13,7 @@ export const improvementRules: Record<ImprovementType, ImprovementRule> = {
   },
   lumberCamp: {
     label: "Lumber Camp",
-    allowedTerrains: ["forest"],
+    allowedTerrains: ["hill", "mountain"],
     yield: {
       food: 0,
       wood: 1,
@@ -33,7 +33,7 @@ export const improvementRules: Record<ImprovementType, ImprovementRule> = {
   },
   study: {
     label: "Study",
-    allowedTerrains: ["river", "coast"],
+    allowedTerrains: ["lake", "plateau"],
     yield: {
       food: 0,
       wood: 0,

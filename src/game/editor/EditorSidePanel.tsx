@@ -55,6 +55,12 @@ export function EditorSidePanel({
             </strong>
           </div>
           <div className="detail-row">
+            <span>显示行列</span>
+            <strong>
+              {selectedTile.displayCol}, {selectedTile.displayRow}
+            </strong>
+          </div>
+          <div className="detail-row">
             <span>地形</span>
             <strong>{TERRAIN_LABELS[selectedTile.terrain]}</strong>
           </div>
@@ -86,7 +92,7 @@ export function EditorSidePanel({
 
       <div className="editor-selection-tools">
         <div className="detail-row">
-          <span>多选数量</span>
+          <span>已选中地块</span>
           <strong>{selectedTileCount}</strong>
         </div>
         <button
