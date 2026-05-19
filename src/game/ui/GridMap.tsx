@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { GameState, Terrain, Tile } from "../core/types";
 
 interface GridMapProps {
@@ -14,14 +15,34 @@ const TERRAIN_LABELS: Record<Terrain, string> = {
   coast: "Coa",
 };
 
+const HEX_WIDTH = 72;
+const HEX_HEIGHT = 64;
+const HEX_VERTICAL_STEP = HEX_HEIGHT * 0.75;
+const MAP_PADDING = 12;
+
+function getHexPosition(tile: Tile): CSSProperties {
+  return {
+    left: MAP_PADDING + HEX_WIDTH * (tile.q + tile.r / 2),
+    top: MAP_PADDING + HEX_VERTICAL_STEP * tile.r,
+    width: HEX_WIDTH,
+    height: HEX_HEIGHT,
+  };
+}
+
 export function GridMap({ state, selectedTileId, onTileClick }: GridMapProps) {
+  const mapWidth =
+    MAP_PADDING * 2 + HEX_WIDTH * (state.width + (state.height - 1) / 2);
+  const mapHeight =
+    MAP_PADDING * 2 + HEX_VERTICAL_STEP * (state.height - 1) + HEX_HEIGHT;
+
   return (
     <div
       className="grid-map"
       role="grid"
       aria-label="World map"
       style={{
-        gridTemplateColumns: `repeat(${state.width}, minmax(42px, 1fr))`,
+        width: mapWidth,
+        height: mapHeight,
       }}
     >
       {state.tiles.map((tile) => {
@@ -49,6 +70,7 @@ export function GridMap({ state, selectedTileId, onTileClick }: GridMapProps) {
             key={tile.id}
             onClick={() => onTileClick(tile)}
             role="gridcell"
+            style={getHexPosition(tile)}
             type="button"
           >
             <span className="tile-terrain">{TERRAIN_LABELS[tile.terrain]}</span>
