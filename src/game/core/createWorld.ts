@@ -1,6 +1,7 @@
 import { hexToId } from "./hex";
 import { createInitialTime } from "./time";
 import type { GameState, Terrain, Tile } from "./types";
+import type { MapDefinition } from "../data/maps/mapTypes";
 
 const TERRAIN_SEQUENCE: Terrain[] = [
   "plain",
@@ -18,6 +19,25 @@ function createTile(q: number, r: number): Tile {
     q,
     r,
     terrain: TERRAIN_SEQUENCE[(q + r) % TERRAIN_SEQUENCE.length],
+  };
+}
+
+function createInitialPlayerState(q: number, r: number): GameState["player"] {
+  return {
+    id: "player-1",
+    food: 0,
+    wood: 0,
+    stone: 0,
+    knowledge: 0,
+    settlers: [
+      {
+        id: "settler-1",
+        q,
+        r,
+        movesLeft: 2,
+      },
+    ],
+    settlements: [],
   };
 }
 
@@ -40,21 +60,30 @@ export function createInitialWorld(width: number, height: number): GameState {
     turn: 1,
     time: createInitialTime(),
     tiles,
-    player: {
-      id: "player-1",
-      food: 0,
-      wood: 0,
-      stone: 0,
-      knowledge: 0,
-      settlers: [
-        {
-          id: "settler-1",
-          q: Math.floor(width / 2),
-          r: Math.floor(height / 2),
-          movesLeft: 2,
-        },
-      ],
-      settlements: [],
-    },
+    player: createInitialPlayerState(
+      Math.floor(width / 2),
+      Math.floor(height / 2),
+    ),
+  };
+}
+
+export function createGameStateFromMapDefinition(
+  map: MapDefinition,
+): GameState {
+  return {
+    width: map.width,
+    height: map.height,
+    turn: 1,
+    time: createInitialTime(),
+    tiles: map.tiles.map((tile) => ({
+      id: hexToId(tile.q, tile.r),
+      q: tile.q,
+      r: tile.r,
+      terrain: tile.terrain,
+    })),
+    player: createInitialPlayerState(
+      map.startingPosition.q,
+      map.startingPosition.r,
+    ),
   };
 }

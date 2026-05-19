@@ -6,31 +6,45 @@ import {
 import type { MapDefinition, MapTileDefinition } from "../data/maps/mapTypes";
 
 interface EditorSidePanelProps {
+  canRedo: boolean;
+  canUndo: boolean;
+  dirty: boolean;
   errorMessage: string | undefined;
   exportJson: string;
   importJson: string;
   map: MapDefinition;
+  saveStatusLabel: string;
   selectedTile: MapTileDefinition | undefined;
   onExport: () => void;
   onImport: () => void;
   onImportJsonChange: (json: string) => void;
+  onRedo: () => void;
   onResetBlankMap: () => void;
   onResetTerrainRingMap: () => void;
+  onSaveDraft: () => void;
   onSetStartingPosition: () => void;
+  onUndo: () => void;
 }
 
 export function EditorSidePanel({
+  canRedo,
+  canUndo,
+  dirty,
   errorMessage,
   exportJson,
   importJson,
   map,
+  saveStatusLabel,
   selectedTile,
   onExport,
   onImport,
   onImportJsonChange,
+  onRedo,
   onResetBlankMap,
   onResetTerrainRingMap,
+  onSaveDraft,
   onSetStartingPosition,
+  onUndo,
 }: EditorSidePanelProps) {
   const selectedIsStart =
     selectedTile?.q === map.startingPosition.q &&
@@ -41,6 +55,38 @@ export function EditorSidePanel({
       <h2>地图绘制器</h2>
 
       {errorMessage ? <div className="error-message">{errorMessage}</div> : null}
+
+      <div
+        className={dirty ? "editor-draft-status dirty" : "editor-draft-status"}
+      >
+        {saveStatusLabel}
+      </div>
+
+      <div className="editor-map-actions">
+        <button
+          className="editor-primary-button"
+          onClick={onSaveDraft}
+          type="button"
+        >
+          保存草稿 Ctrl+S
+        </button>
+        <button
+          className="editor-primary-button secondary"
+          disabled={!canUndo}
+          onClick={onUndo}
+          type="button"
+        >
+          撤销 Ctrl+Z
+        </button>
+        <button
+          className="editor-primary-button secondary"
+          disabled={!canRedo}
+          onClick={onRedo}
+          type="button"
+        >
+          重做 Ctrl+Y
+        </button>
+      </div>
 
       {selectedTile ? (
         <dl className="detail-list">

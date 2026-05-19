@@ -315,6 +315,21 @@ button {
   margin: 14px 0;
 }
 
+.editor-draft-status {
+  border: 1px solid #cec5ad;
+  border-radius: 6px;
+  background: #fff8e8;
+  color: #3b392f;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.editor-draft-status.dirty {
+  border-color: #b88943;
+  background: #fff3d8;
+}
+
 .editor-map-tile {
   font-size: 11px;
   grid-template-rows: auto 1fr auto auto;

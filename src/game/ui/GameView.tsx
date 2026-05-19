@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { foundSettlement, startTravel } from "../core/actions";
-import { createInitialWorld } from "../core/createWorld";
+import {
+  createGameStateFromMapDefinition,
+  createInitialWorld,
+} from "../core/createWorld";
+import { hexToId } from "../core/hex";
 import { getTravelTaskRemainingDays } from "../core/pathfinding";
 import { getTileAt } from "../core/selectors";
 import { advanceDays, setSpeed, togglePause } from "../core/time";
 import type { GameSpeed, GameState, Settler, Tile } from "../core/types";
+import { readEditorDraftMap } from "../editor/editorDraftStorage";
 import { GridMap } from "./GridMap";
 import { SidePanel } from "./SidePanel";
 
@@ -33,6 +38,8 @@ function getSettlerAt(
 }
 
 export function GameView() {
+  const initialDraft = useMemo(() => readEditorDraftMap(), []);
+  const draftMap = initialDraft?.ok ? initialDraft.map : undefined;
   const [gameState, setGameState] = useState(() => createInitialWorld(10, 10));
   const [selectedTileId, setSelectedTileId] = useState<string | undefined>(
     "hex-5-5",
@@ -40,7 +47,11 @@ export function GameView() {
   const [selectedSettlerId, setSelectedSettlerId] = useState<
     string | undefined
   >("settler-1");
-  const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(() =>
+    initialDraft && !initialDraft.ok
+      ? "编辑器草稿解析失败，仍可使用默认地图开局。"
+      : undefined,
+  );
   const accumulatedDaysRef = useRef(0);
 
   const selectedTile = useMemo(
@@ -155,6 +166,21 @@ export function GameView() {
     setErrorMessage(undefined);
   }
 
+  function handleUseEditorDraftMap() {
+    if (!draftMap) {
+      return;
+    }
+
+    const nextState = createGameStateFromMapDefinition(draftMap);
+    setGameState(nextState);
+    setSelectedTileId(
+      hexToId(draftMap.startingPosition.q, draftMap.startingPosition.r),
+    );
+    setSelectedSettlerId("settler-1");
+    setErrorMessage(undefined);
+    accumulatedDaysRef.current = 0;
+  }
+
   return (
     <main className="game-shell">
       <header className="game-header">
@@ -176,6 +202,15 @@ export function GameView() {
           </div>
         </div>
         <div className="time-controls" aria-label="时间控制">
+          {draftMap ? (
+            <button
+              className="turn-button"
+              onClick={handleUseEditorDraftMap}
+              type="button"
+            >
+              使用编辑器草稿开局
+            </button>
+          ) : null}
           <button className="turn-button" type="button" onClick={handleTogglePause}>
             {gameState.time.paused ? "继续" : "暂停"}
           </button>
